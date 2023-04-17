@@ -10,35 +10,20 @@ trait Functions:
   def max(a: List[Int]): Int // gives Int.MinValue if a is empty
 
 object FunctionsImpl extends Functions:
-  override def sum(a: List[Double]): Double =
-    combine(a)(using Combiner(0.0, _ + _))
+  override def sum(a: List[Double]): Double = combine(a)
+  override def concat(a: Seq[String]): String = combine(a)
+  override def max(a: List[Int]): Int = combine(a)
 
-  override def concat(a: Seq[String]): String =
-    combine(a)(using Combiner("", _ + _))
-
-  override def max(a: List[Int]): Int =
-    combine(a)(using Combiner(Int.MinValue, Integer.max))
+  private given Combiner[Double] = Combiner(0.0, _ + _)
+  private given Combiner[String] = Combiner("", _ + _)
+  private given Combiner[Int] = Combiner(Int.MinValue, Integer.max)
 
   private def combine[A: Combiner](a: Seq[A]): A = a match
     case Nil => summon[Combiner[A]].unit
     case x :: xs => summon[Combiner[A]].combine(x, combine(xs))
 
-/*
- * 2) To apply DRY principle at the best,
- * note the three methods in Functions do something similar.
- * Use the following approach:
- * - find three implementations of Combiner that tell (for sum,concat and max) how
- *   to combine two elements, and what to return when the input list is empty
- * - implement in FunctionsImpl a single method combiner that, other than
- *   the collection of A, takes a Combiner as input
- * - implement the three methods by simply calling combiner
- *
- * When all works, note we completely avoided duplications..
- */
-
 trait Combiner[A]:
   def unit: A
-
   def combine(a: A, b: A): A
 
 object Combiner:
