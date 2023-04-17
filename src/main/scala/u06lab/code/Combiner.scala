@@ -11,16 +11,20 @@ trait Functions:
 
 object FunctionsImpl extends Functions:
   override def sum(a: List[Double]): Double = combine(a)
+
   override def concat(a: Seq[String]): String = combine(a)
+
+  private def combine[A: Combiner](a: Seq[A]): A =
+    a.foldLeft(summon[Combiner[A]].unit)(summon[Combiner[A]].combine)
+
   override def max(a: List[Int]): Int = combine(a)
 
   private given Combiner[Double] = Combiner(0.0, _ + _)
+
   private given Combiner[String] = Combiner("", _ + _)
+
   private given Combiner[Int] = Combiner(Int.MinValue, Integer.max)
 
-  private def combine[A: Combiner](a: Seq[A]): A = a match
-    case Nil => summon[Combiner[A]].unit
-    case x :: xs => summon[Combiner[A]].combine(x, combine(xs))
 
 trait Combiner[A]:
   def unit: A
