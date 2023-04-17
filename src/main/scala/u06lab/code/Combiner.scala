@@ -12,28 +12,28 @@ trait Functions:
 object FunctionsImpl extends Functions:
   override def sum(a: List[Double]): Double = combine(a)
 
-  override def concat(a: Seq[String]): String = combine(a)
-
   private def combine[A: Combiner](a: Seq[A]): A =
-    a.foldLeft(summon[Combiner[A]].unit)(summon[Combiner[A]].combine)
+    val combiner = summon[Combiner[A]]
+    a.foldLeft(combiner.unit)(combiner.combine)
 
   override def max(a: List[Int]): Int = combine(a)
 
+  override def concat(a: Seq[String]): String = combine(a)
+
   private given Combiner[Double] = Combiner(0.0, _ + _)
-
   private given Combiner[String] = Combiner("", _ + _)
-
   private given Combiner[Int] = Combiner(Int.MinValue, Integer.max)
-
 
 trait Combiner[A]:
   def unit: A
+
   def combine(a: A, b: A): A
 
 object Combiner:
   def apply[A](a: A, combiner: (A, A) => A): Combiner[A] =
     new Combiner[A]:
       override def unit: A = a
+
       override def combine(a: A, b: A): A = combiner(a, b)
 
 @main def checkFunctions(): Unit =
