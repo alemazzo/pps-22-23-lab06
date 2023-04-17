@@ -47,3 +47,17 @@ class ParserTests:
     assertTrue(sparser.parseAll("".toList))
 
   def sparser: Parser[Char] = "abc".charParser()
+
+  @Test
+  def testShorterThanNParser =
+    assertTrue(parserShorterThanN.parseAll("".toList))
+    assertTrue(parserShorterThanN.parseAll("a".toList))
+    assertTrue(parserShorterThanN.parseAll("ab".toList))
+    assertTrue(parserShorterThanN.parseAll("abc".toList))
+    assertFalse(parserShorterThanN.parseAll("aabc".toList))
+    assertFalse(parserShorterThanN.parseAll("aabcdc".toList))
+
+  def parserShorterThanN = new BasicParser(Set('a', 'b', 'c')) with ShortenThenN[Char](3)
+
+
+
