@@ -4,19 +4,24 @@ package u06lab.code
 
 trait Functions:
   def sum(a: List[Double]): Double
+
   def concat(a: Seq[String]): String
+
   def max(a: List[Int]): Int // gives Int.MinValue if a is empty
 
 object FunctionsImpl extends Functions:
-  override def sum(a: List[Double]): Double = a match
-    case Nil => 0.0
-    case x :: xs => x + sum(xs)
-  override def concat(a: Seq[String]): String = a match
-    case Nil => ""
-    case x :: xs => x + concat(xs)
-  override def max(a: List[Int]): Int = a match
-    case Nil => Int.MinValue
-    case x :: xs => if x > max(xs) then x else max(xs)
+  override def sum(a: List[Double]): Double =
+    combine(a)(using Combiner(0.0, _ + _))
+
+  override def concat(a: Seq[String]): String =
+    combine(a)(using Combiner("", _ + _))
+
+  override def max(a: List[Int]): Int =
+    combine(a)(using Combiner(Int.MinValue, Integer.max))
+
+  private def combine[A: Combiner](a: Seq[A]): A = a match
+    case Nil => summon[Combiner[A]].unit
+    case x :: xs => summon[Combiner[A]].combine(x, combine(xs))
 
 /*
  * 2) To apply DRY principle at the best,
@@ -33,7 +38,14 @@ object FunctionsImpl extends Functions:
 
 trait Combiner[A]:
   def unit: A
+
   def combine(a: A, b: A): A
+
+object Combiner:
+  def apply[A](a: A, combiner: (A, A) => A): Combiner[A] =
+    new Combiner[A]:
+      override def unit: A = a
+      override def combine(a: A, b: A): A = combiner(a, b)
 
 @main def checkFunctions(): Unit =
   val f: Functions = FunctionsImpl
