@@ -8,9 +8,15 @@ trait Functions:
   def max(a: List[Int]): Int // gives Int.MinValue if a is empty
 
 object FunctionsImpl extends Functions:
-  override def sum(a: List[Double]): Double = ???
-  override def concat(a: Seq[String]): String = ???
-  override def max(a: List[Int]): Int = ???
+  override def sum(a: List[Double]): Double = a match
+    case Nil => 0.0
+    case x :: xs => x + sum(xs)
+  override def concat(a: Seq[String]): String = a match
+    case Nil => ""
+    case x :: xs => x + concat(xs)
+  override def max(a: List[Int]): Int = a match
+    case Nil => Int.MinValue
+    case x :: xs => if x > max(xs) then x else max(xs)
 
 /*
  * 2) To apply DRY principle at the best,
@@ -37,3 +43,5 @@ trait Combiner[A]:
   println(f.concat(Seq())) // ""
   println(f.max(List(-10, 3, -5, 0))) // 3
   println(f.max(List())) // -2147483648
+
+
