@@ -38,12 +38,12 @@ trait NotTwoConsecutive[T] extends Parser[T]:
   private[this] var repeated = false
 
   abstract override def parse(t: T): Boolean =
-    if previous.contains(t) then repeated = true
-    previous = Some(t)
-    if !repeated then
-      super.parse(t)
-    else
+    if repeated || previous.contains(t) then
+      repeated = true
       false
+    else
+      previous = Some(t)
+      super.parse(t)
 
   abstract override def end: Boolean = !repeated && super.end
 
