@@ -4,14 +4,6 @@ import java.util.OptionalInt
 
 // Optional!
 object ConnectThree extends App:
-  val bound = 3
-  enum Player:
-    case X, O
-    def other: Player = this match
-      case X => O
-      case _ => X
-
-  case class Disk(x: Int, y: Int, player: Player)
   /**
    * Board:
    * y
@@ -20,18 +12,11 @@ object ConnectThree extends App:
    * 2
    * 1
    * 0
-   *   0 1 2 3 <-- x
+   * 0 1 2 3 <-- x
    */
   type Board = Seq[Disk]
   type Game = Seq[Board]
-
-  import Player.*
-
-  def find(board: Board, x: Int, y: Int): Option[Player] = ???
-
-  def firstAvailableRow(board: Board, x: Int): Option[Int] = ???
-
-  def placeAnyDisk(board: Board, player: Player): Seq[Board] = ???
+  val bound = 3
 
   def computeAnyGame(player: Player, moves: Int): LazyList[Game] = ???
 
@@ -45,6 +30,29 @@ object ConnectThree extends App:
       if x == bound then
         print(" ")
         if board == game.head then println()
+
+  import Player.*
+
+  def find(board: Board, x: Int, y: Int): Option[Player] =
+    board.find(d => d.x == x && d.y == y).map(_.player)
+
+  private def placeAnyDisk(board: Board, player: Player): Seq[Board] =
+    for
+      x <- 0 to bound
+      y <- firstAvailableRow(board, x).toSeq
+    yield board :+ Disk(x, y, player)
+
+  def firstAvailableRow(board: Board, x: Int): Option[Int] =
+    (0 to bound) find (y => !board.exists(d => d.x == x && d.y == y))
+
+  case class Disk(x: Int, y: Int, player: Player)
+
+  enum Player:
+    case X, O
+
+    def other: Player = this match
+      case X => O
+      case _ => X
 
   // Exercise 1: implement find such that..
   println("EX 1: ")
@@ -71,7 +79,7 @@ object ConnectThree extends App:
   // ...X .... .... ....
   // ...O ..XO .X.O X..O
   println("EX 3: ")
-// Exercise 3 (ADVANCED!): implement computeAnyGame such that..
+  // Exercise 3 (ADVANCED!): implement computeAnyGame such that..
   computeAnyGame(O, 4).foreach { g =>
     printBoards(g)
     println()
