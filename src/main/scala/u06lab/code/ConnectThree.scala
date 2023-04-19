@@ -18,7 +18,13 @@ object ConnectThree extends App:
   type Game = Seq[Board]
   val bound = 3
 
-  def computeAnyGame(player: Player, moves: Int): LazyList[Game] = ???
+  def computeAnyGame(player: Player, moves: Int): LazyList[Game] = moves match
+    case 1 => placeAnyDisk(Seq(), player).map(List(_)).to(LazyList)
+    case _ =>
+      for
+        game <- computeAnyGame(player.other, moves - 1)
+        board <- if isThereAWin(game.last) then LazyList.empty else placeAnyDisk(game.last, player)
+      yield game :+ board
 
   def printBoards(game: Seq[Board]): Unit =
     for
@@ -31,19 +37,47 @@ object ConnectThree extends App:
         print(" ")
         if board == game.head then println()
 
-  import Player.*
-
   def find(board: Board, x: Int, y: Int): Option[Player] =
     board.find(d => d.x == x && d.y == y).map(_.player)
+
+  import Player.*
+
+  def firstAvailableRow(board: Board, x: Int): Option[Int] =
+    (0 to bound) find (y => !board.exists(d => d.x == x && d.y == y))
+
+  private def isThereAWin(board: Board): Boolean =
+    val horizontal = (0 to bound) exists { x =>
+      (0 to bound - 2) exists { y =>
+        val disks = (0 to 2) map (i => find(board, x, y + i))
+        disks.forall(d => d.isDefined && d.get == disks.head.get)
+      }
+    }
+    val vertical = (0 to bound) exists { y =>
+      (0 to bound - 2) exists { x =>
+        val disks = (0 to 2) map (i => find(board, x + i, y))
+        disks.forall(d => d.isDefined && d.get == disks.head.get)
+      }
+    }
+    val diagonal = (0 to bound - 2) exists { x =>
+      (0 to bound - 2) exists { y =>
+        val disks = (0 to 2) map (i => find(board, x + i, y + i))
+        disks.forall(d => d.isDefined && d.get == disks.head.get)
+      }
+    }
+    val antiDiagonal = (0 to bound - 2) exists { x =>
+      (2 to bound) exists { y =>
+        val disks = (0 to 2) map (i => find(board, x + i, y - i))
+        disks.forall(d => d.isDefined && d.get == disks.head.get)
+      }
+    }
+    horizontal || vertical || diagonal || antiDiagonal
+
 
   private def placeAnyDisk(board: Board, player: Player): Seq[Board] =
     for
       x <- 0 to bound
       y <- firstAvailableRow(board, x).toSeq
     yield board :+ Disk(x, y, player)
-
-  def firstAvailableRow(board: Board, x: Int): Option[Int] =
-    (0 to bound) find (y => !board.exists(d => d.x == x && d.y == y))
 
   case class Disk(x: Int, y: Int, player: Player)
 
@@ -80,9 +114,10 @@ object ConnectThree extends App:
   // ...O ..XO .X.O X..O
   println("EX 3: ")
   // Exercise 3 (ADVANCED!): implement computeAnyGame such that..
-  computeAnyGame(O, 4).foreach { g =>
-    printBoards(g)
-    println()
+  computeAnyGame(O, 5).foreach { g =>
+    if isThereAWin(g.last) then
+      printBoards(g.reverse)
+      println()
   }
 //  .... .... .... .... ...O
 //  .... .... .... ...X ...X
