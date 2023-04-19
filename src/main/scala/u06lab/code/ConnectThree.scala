@@ -115,7 +115,6 @@ object ConnectThree extends App:
   println("EX 3: ")
   // Exercise 3 (ADVANCED!): implement computeAnyGame such that..
   computeAnyGame(O, 5).foreach { g =>
-    if isThereAWin(g.last) then
       printBoards(g.reverse)
       println()
   }
