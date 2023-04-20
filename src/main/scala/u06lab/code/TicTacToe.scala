@@ -9,18 +9,33 @@ object TicTacToe extends App:
   main()
 
   def main(): Unit =
-    val games = computeAnyGame(Player.X, 2)
+    val games = computeAnyGame(Player.X, 6)
     println(s"Found ${games.size} games:")
-    games.foreach(printGame)
+    games.filter(g => isThereAWin(g.last))
+        .foreach(printGame)
+
+  def isThereAWin(board: Board): Boolean =
+    // Group the cells by rows and check if there is a row with 3 cells of the same player
+    val rowWin = board.groupBy(_.x).values.exists(row => row.size == 3 && row.map(_.player).distinct.size == 1)
+    // Group the cells by columns and check if there is a column with 3 cells of the same player
+    val colWin = board.groupBy(_.y).values.exists(col => col.size == 3 && col.map(_.player).distinct.size == 1)
+    // Check if there is a diagonal with 3 cells of the same player
+    val diagWin = board.count(c => c.x == c.y) == 3 &&
+      board.filter(c => c.x == c.y).map(_.player).distinct.size == 1
+    // Check if there is an anti-diagonal with 3 cells of the same player
+    val antiDiagWin = board.count(c => c.x + c.y == bound - 1) == 3 &&
+      board.filter(c => c.x + c.y == bound - 1).map(_.player).distinct.size == 1
+    rowWin || colWin || diagWin || antiDiagWin
+
 
   def computeAnyGame(player: Player, moves: Int): LazyList[Game] = moves match
     case 1 => playAnyMove(Seq(), player).map(List(_)).to(LazyList)
     case _ =>
-      for
-        game <- computeAnyGame(player.other, moves - 1)
-        board <- playAnyMove(game.last, player)
-      yield
-        game :+ board
+        for
+          game <- computeAnyGame(player.other, moves - 1)
+          win = isThereAWin(game.last)
+          board <- if win then LazyList(game.last) else playAnyMove(game.last, player)
+        yield if win then game else game :+ board
 
   private def printGame(game: Game): Unit =
     println("Game:")
