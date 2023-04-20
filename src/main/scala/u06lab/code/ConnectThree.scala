@@ -18,7 +18,7 @@ object ConnectThree extends App:
   type Game = Seq[Board]
   val bound = 3
 
-  def computeAnyGame(player: Player, moves: Int): LazyList[Game] = moves match
+  private def computeAnyGame(player: Player, moves: Int): LazyList[Game] = moves match
     case 1 => placeAnyDisk(Seq(), player).map(List(_)).to(LazyList)
     case _ =>
       for
@@ -26,7 +26,7 @@ object ConnectThree extends App:
         board <- if isThereAWin(game.last) then LazyList.empty else placeAnyDisk(game.last, player)
       yield game :+ board
 
-  def printBoards(game: Seq[Board]): Unit =
+  private def printBoards(game: Seq[Board]): Unit =
     for
       y <- bound to 0 by -1
       board <- game.reverse
@@ -42,7 +42,7 @@ object ConnectThree extends App:
 
   import Player.*
 
-  def firstAvailableRow(board: Board, x: Int): Option[Int] =
+  private def firstAvailableRow(board: Board, x: Int): Option[Int] =
     (0 to bound) find (y => !board.exists(d => d.x == x && d.y == y))
 
   private def isThereAWin(board: Board): Boolean =
