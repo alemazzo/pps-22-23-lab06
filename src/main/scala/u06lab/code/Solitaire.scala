@@ -1,6 +1,7 @@
 package u06lab.code
 
 import scala.::
+import scala.annotation.targetName
 
 object Domain:
   case class Position(x: Int, y: Int)
@@ -15,6 +16,7 @@ object Domain:
 
   case class Solution(positions: Seq[Position]):
     export positions.{last, contains, indexOf}
+    @targetName("append")
     def :+(position: Position): Solution = Solution(positions :+ position)
 
   object Solution:
@@ -27,7 +29,7 @@ object Solitaire extends App:
 
   import Domain.*
 
-  @main def main() =
+  @main def main(): Unit =
     val boardSize = BoardSize(5, 5)
     val solutions = placeMarks(boardSize, boardSize.total - 12)
     solutions.foreach(p => println(render(p, boardSize.width, boardSize.height) + "\n"))
