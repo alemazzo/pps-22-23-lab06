@@ -23,8 +23,9 @@ object ConnectThree extends App:
     case _ =>
       for
         game <- computeAnyGame(player.other, moves - 1)
-        board <- if isThereAWin(game.last) then LazyList.empty else placeAnyDisk(game.last, player)
-      yield game :+ board
+        win = isThereAWin(game.last)
+        board <- if win then LazyList(game.last) else placeAnyDisk(game.last, player)
+      yield if win then game else game :+ board
 
   private def printBoards(game: Seq[Board]): Unit =
     for
@@ -114,10 +115,11 @@ object ConnectThree extends App:
   // ...O ..XO .X.O X..O
   println("EX 3: ")
   // Exercise 3 (ADVANCED!): implement computeAnyGame such that..
-  computeAnyGame(O, 5).foreach { g =>
+  computeAnyGame(O, 8).filter(_.size == 5).foreach { g =>
       printBoards(g.reverse)
       println()
   }
+
 //  .... .... .... .... ...O
 //  .... .... .... ...X ...X
 //  .... .... ...O ...O ...O
